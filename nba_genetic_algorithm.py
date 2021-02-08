@@ -4,7 +4,8 @@ import create_dataframe
 import random
 from tqdm import tqdm
 
-def main(population, max_generations, mutations_per_generation):
+def main(population, max_generations, mutations_per_generation, max_salary):
+    df = create_dataframe.create()
     print("Darwinning...")
     curr_population = population
     for i in tqdm(range(max_generations)):
@@ -42,9 +43,16 @@ def get_random_indices(roster_size=15):
                 break
             
     return players
+
+
+def calculate_fitness(population, df):
+    fitness_dict = {}
+    for individual in population:
+        
         
 if __name__ == "__main__":
     population = init_population(100)
     max_generations = 70
     mutations_per_generation = 1
-    main(population, max_generations, mutations_per_generation)
+    max_salary = 109140000
+    main(population, max_generations, mutations_per_generation, max_salary)
