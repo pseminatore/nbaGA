@@ -3,6 +3,7 @@ import numpy as np
 import create_dataframe
 import random
 from tqdm import tqdm
+from itertools import zip_longest
 
 def main(df, population, max_generations, mutations_per_generation, max_salary, fitness_strategy, mating_strategy):
     
@@ -37,12 +38,21 @@ def init_population(pop_size, df, max_salary):
         
     return population
 
-### TODO -- Implement pairing
 def pair_parents(sorted_population_tuple, mating_strategy):
     paired_tuple = []
     if mating_strategy == 0:
-        
-        
+        parent_pairs = top_down_pairing(sorted_population_tuple)
+    return parent_pairs
+
+def top_down_pairing(mating_pool):
+    parent_pairs = grouper(mating_pool)
+    return parent_pairs
+    
+def grouper(parent_pool, n=2, fillvalue=None):
+    args = [iter(parent_pool)] * n        
+    return list(zip_longest(*args, fillvalue=fillvalue))
+
+
 def get_random_indices(roster_size=15):
     
     players = []   
@@ -66,7 +76,6 @@ def calculate_fitness(population, df, max_salary, fitness_strategy):
                
         total_salary = extract_salaries(individual, df)
         
-        ### TODO -- Continue to calculate fitness
         if total_salary > max_salary:
             fitness = 0
         elif not has_complete_lineup(individual, df):
