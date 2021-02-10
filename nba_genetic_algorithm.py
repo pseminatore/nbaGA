@@ -6,11 +6,12 @@ from tqdm import tqdm
 from itertools import zip_longest
 
 def main(df, population, max_generations, mutations_per_generation, max_salary, fitness_strategy, pairing_strategy, mating_strategy):
+    best_team = [0, [0]]
     
     print("Darwinning...")
     curr_population = population
     ### TODO -- Include some sort of cutoff when result is good enough
-    for i in tqdm(range(max_generations)):
+    for i in range(max_generations):
         ## Calculate fitness
         population_fitness_tuple = calculate_fitness(curr_population, df, max_salary, fitness_strategy)
         ## Determine mating pool
@@ -20,21 +21,25 @@ def main(df, population, max_generations, mutations_per_generation, max_salary, 
         ## Mating Crossover
         ## Mutation
         curr_population = mate_parents(paired_population_tuple, mating_strategy, mutations_per_generation)
-        ## new_generation = get offspring
     
-    ## Get best team (individual)
-    population_fitness_tuple = calculate_fitness(curr_population, df, max_salary, fitness_strategy)
-    sorted_population_tuple = sorted(population_fitness_tuple, key=lambda item: item[0], reverse=True)
-    team = extract_team(sorted_population_tuple[0][1], df)
+        ## Get best team (individual)
+        population_fitness_tuple = calculate_fitness(curr_population, df, max_salary, fitness_strategy)
+        sorted_population_tuple = sorted(population_fitness_tuple, key=lambda item: item[0], reverse=True)
+        if sorted_population_tuple[0][0] > best_team[0]:
+            best_team[0] = sorted_population_tuple[0][0]
+            team = extract_team(sorted_population_tuple[0][1], df)
+            best_team[1] = team
     
     ## Build starting 5
-    team = build_starting_five(team)
+    best_team = build_starting_five(best_team[1])
     
     ## Display Roster
-    display(team)    
+    display(best_team, sorted_population_tuple[0][0])    
     print("")
     
-def display(team):
+def display(team, fitness):
+    print("")
+    print("Fitness: %d" % fitness)
     print("Starting 5: ")
     for player in team[:5]:
         print(player)
@@ -152,7 +157,7 @@ def calculate_fitness(population, df, max_salary, fitness_strategy):
         total_salary = extract_salaries(individual, df)
         
         if total_salary > max_salary:
-            fitness = 0
+            fitness = 1
         elif not has_complete_lineup(individual, df):
             fitness = 0
         else:
@@ -168,15 +173,24 @@ def find_weighted_fitness(individual, df, fitness_strategy):
     return fitness
 
 def starting_five_weighted_fitness(individual, df):
-    pass
+    fitness = 0
+    team = extract_team(individual, df)
+    team = build_starting_five(team)
+    for player in team[:5]:
+        fitness += (int(int(player[1]) * 2.5))
+    for player in team[5:10]:
+        fitness += int(int(player[1]) * 1.5)
+    for player in team[10:]:
+        fitness += int(int(player[1]) * 0.25)
+    return fitness
 
 def find_balanced_total_rating(individual, df):
-    total_ovr = 0
+    fitness = 0
     player_indices = np.where(individual == 1)[0]
     for player_index in player_indices.tolist():
         player_row = df.iloc[player_index] 
-        total_ovr += int(player_row.Rating)   
-    return total_ovr
+        fitness += int(player_row.Rating)   
+    return fitness
 
 def has_complete_lineup(individual, df):
     positions = get_positions(individual, df)
@@ -239,9 +253,9 @@ if __name__ == "__main__":
     df = create_dataframe.create()
     max_salary = 109140000
     population = init_population(100, df, max_salary)
-    max_generations = 3
+    max_generations = 2000
     mutations_per_generation = 1
-    fitness_strategy = 0
+    fitness_strategy = 1
     pairing_strategy = 0
     mating_strategy = 0
     main(df, population, max_generations, mutations_per_generation, max_salary, fitness_strategy, pairing_strategy, mating_strategy)
