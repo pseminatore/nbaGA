@@ -21,14 +21,37 @@ def main(df, population, max_generations, mutations_per_generation, max_salary, 
         ## Mutation
         curr_population = mate_parents(paired_population_tuple, mating_strategy, mutations_per_generation)
         ## new_generation = get offspring
+    
+    ## Get best team (individual)
     population_fitness_tuple = calculate_fitness(curr_population, df, max_salary, fitness_strategy)
     sorted_population_tuple = sorted(population_fitness_tuple, key=lambda item: item[0], reverse=True)
     team = extract_team(sorted_population_tuple[0][1], df)
+    
+    ## Build starting 5
+    team = build_starting_five(team)
+    
+    ## Display Roster
+    display(team)    
     print("")
     
-    ## Get best team (individual)
-    ## Build starting 5
-    ## Display Roster
+def display(team):
+    print("Starting 5: ")
+    for player in team[:5]:
+        print(player)
+        
+    print("Bench: ")
+    for player in team[5:]:
+        print(player)
+        
+        
+def build_starting_five(team):
+    positions = ['C', 'PF', 'SF', 'SG', 'PG']
+    for position in positions:
+        for player in team:
+            if player[2] == position:
+                team.insert(0, team.pop(team.index(player)))
+                break
+    return team
 
 def mate_parents(paired_population_tuple, mating_strategy, mutations_per_generation):
     ### TODO -- Add mutation
@@ -139,8 +162,13 @@ def calculate_fitness(population, df, max_salary, fitness_strategy):
 
 def find_weighted_fitness(individual, df, fitness_strategy):
     if fitness_strategy == 0:
-        fitness = find_balanced_total_rating(individual, df)   
+        fitness = find_balanced_total_rating(individual, df)
+    if fitness_strategy == 1:
+        fitness = starting_five_weighted_fitness(individual, df)
     return fitness
+
+def starting_five_weighted_fitness(individual, df):
+    pass
 
 def find_balanced_total_rating(individual, df):
     total_ovr = 0
@@ -211,7 +239,7 @@ if __name__ == "__main__":
     df = create_dataframe.create()
     max_salary = 109140000
     population = init_population(100, df, max_salary)
-    max_generations = 70
+    max_generations = 3
     mutations_per_generation = 1
     fitness_strategy = 0
     pairing_strategy = 0
