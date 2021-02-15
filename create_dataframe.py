@@ -13,6 +13,15 @@ def create():
     df = df.dropna()
     df.reset_index(inplace=True)
     print(df) 
+    df.to_csv('data.csv')
+    return df
+
+
+def read():
+    df = pd.read_csv('data.csv', index_col=0)
+    df = df.dropna()
+    df['Rating'] = df['Rating'].astype(int)
+    print(df)
     return df
     
 if __name__ == "__main__":

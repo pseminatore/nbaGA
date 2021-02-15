@@ -5,13 +5,28 @@ import random
 from tqdm import tqdm
 from itertools import zip_longest
 
-def main(df, population, max_generations, mutations_per_generation, max_salary, fitness_strategy, pairing_strategy, mating_strategy):
+def run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy):
+    df = create_dataframe.create()
+    #df2 = create_dataframe.read()
+    """  print(df1)
+    print(df2)
+    print(df1.info(verbose=True))
+    print(df2.info(verbose=True))
+    df3 = df1.compare(df2, align_axis=0)
+    print(df3)
+    print(df1.equals(df2)) """
+    #df1_diff = df3[[df3['_merge'] == 'right_only']]
+    #df2_diff = df3[[df3['_merge'] == 'left_only']]
+    #df3 = pd.concat([df1, df2]).drop_duplicates(keep=False)
+    #print(df1_diff)
+    #print(df2_diff)
+    population = init_population(100, df, max_salary)
     best_team = [0, [0]]
     
     print("Darwinning...")
     curr_population = population
     ### TODO -- Include some sort of cutoff when result is good enough
-    for i in range(max_generations):
+    for i in tqdm(range(max_generations)):
         ## Calculate fitness
         population_fitness_tuple = calculate_fitness(curr_population, df, max_salary, fitness_strategy)
         ## Determine mating pool
@@ -20,7 +35,7 @@ def main(df, population, max_generations, mutations_per_generation, max_salary, 
         paired_population_tuple = pair_parents(sorted_population_tuple, pairing_strategy)
         ## Mating Crossover
         ## Mutation
-        curr_population = mate_parents(paired_population_tuple, mating_strategy, mutations_per_generation)
+        curr_population = mate_parents(paired_population_tuple, mating_strategy, mutation_rate)
     
         ## Get best team (individual)
         population_fitness_tuple = calculate_fitness(curr_population, df, max_salary, fitness_strategy)
@@ -36,6 +51,7 @@ def main(df, population, max_generations, mutations_per_generation, max_salary, 
     ## Display Roster
     display(best_team, sorted_population_tuple[0][0])    
     print("")
+    return best_team
     
 def display(team, fitness):
     print("")
@@ -58,7 +74,7 @@ def build_starting_five(team):
                 break
     return team
 
-def mate_parents(paired_population_tuple, mating_strategy, mutations_per_generation):
+def mate_parents(paired_population_tuple, mating_strategy, mutation_rate):
     ### TODO -- Add mutation
     if mating_strategy == 0:
         child_population = base_mating(paired_population_tuple)
@@ -157,7 +173,7 @@ def calculate_fitness(population, df, max_salary, fitness_strategy):
         total_salary = extract_salaries(individual, df)
         
         if total_salary > max_salary:
-            fitness = 1
+            fitness = 0 
         elif not has_complete_lineup(individual, df):
             fitness = 0
         else:
@@ -177,11 +193,11 @@ def starting_five_weighted_fitness(individual, df):
     team = extract_team(individual, df)
     team = build_starting_five(team)
     for player in team[:5]:
-        fitness += (int(int(player[1]) * 2.5))
+        fitness += (int(int(player[1]) * 3))
     for player in team[5:10]:
-        fitness += int(int(player[1]) * 1.5)
+        fitness += int(int(player[1]) * 2)
     for player in team[10:]:
-        fitness += int(int(player[1]) * 0.25)
+        fitness += int(int(player[1]) * 0.2)
     return fitness
 
 def find_balanced_total_rating(individual, df):
@@ -250,12 +266,10 @@ def extract_team(individual, df):
     return players
     
 if __name__ == "__main__":
-    df = create_dataframe.create()
     max_salary = 109140000
-    population = init_population(100, df, max_salary)
-    max_generations = 2000
-    mutations_per_generation = 1
+    max_generations = 80
+    mutation_rate = 1
     fitness_strategy = 1
     pairing_strategy = 0
     mating_strategy = 0
-    main(df, population, max_generations, mutations_per_generation, max_salary, fitness_strategy, pairing_strategy, mating_strategy)
+    run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy)
