@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Building The Ideal NBA Team</title>
+</head>
+<body>
+    <div class="jumbotron">
+        <h1 class="display-1">Building The Best Possible NBA Team</h1>
+        <h1 class="display-6">Using the Genetic Algorithm</h1>
+    </div>
+    <div style="display: none;" id="loader">
+      <div class="spinner-border" role="status" >
+      </div>
+      Loading...
+    </div>
+    
+    <div id="content">
+      {% if built %}
+          <h3>Page Built</h3>
+      {% else %}
+      <form action="/home" method="POST">
+          <div class="form-group">
+            <label for="MaxSalary">Salary Cap</label>
+            <input type="number" class="form-control" id="MaxSalary" name="MaxSalary" aria-describedby="salaryHelp" required="required" value="109140000">
+            <small id="salaryHelp" class="form-text text-muted">The maximum payroll for a team.</small>
+          </div>
+          <br>
+          <div class="form-group">
+              <label for="MaxGenerations">Number of Generations</label>
+              <input type="number" class="form-control" id="MaxGenerations" name="MaxGenerations" aria-describedby="generationsHelp" required="required" value="100">
+              <small id="generationsHelp" class="form-text text-muted">The number of generations to run the algorithm.</small>
+            </div>
+          <br>
+          <div class="form-group">
+              <label for="MutationRate">Mutation Rate</label>
+              <input type="number" class="form-control" id="MutationRate" name="MutationRate" aria-describedby="mutationHelp" required="required" value="0.0">
+              <small id="mutationHelp" class="form-text text-muted">The probablity of gene mutation in a given individual.</small>
+            </div>
+          <br>
+          <div class="form-group">
+              <label for="FitnessStrategy">Team Archetype</label>
+              <select class="form-control" id="FitnessStrategy" name="FitnessStrategy">
+                <option>Balanced</option>
+                <option>Starting Five</option>
+              </select>
+          </div>
+          <br>
+          <div class="form-group">
+              <label for="PairingStrategy">Pairing Strategy</label>
+              <select class="form-control" id="PairingStrategy" name="PairingStrategy">
+                <option>Top-Down</option>
+              </select>
+          </div>
+          <br>
+          <div class="form-group">
+              <label for="MatingStrategy">Mating Strategy</label>
+              <select class="form-control" id="MatingStrategy" name="MatingStrategy">
+                <option>Random Crossover</option>
+                <option>Positionwise</option>
+              </select>
+          </div>
+          <br>
+          <br>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      {% endif %}
+    </div>
+    <script>
+      $("button").click(function(){
+        $( "#content" ).fadeOut(400, function(){
+          $( "#loader").fadeIn(400);
+        });
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+</body>
+</html>

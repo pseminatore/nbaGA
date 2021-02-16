@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <title>Building The Ideal NBA Team</title>
+</head>
+<body>
+    <div class="jumbotron">
+        <h1 class="display-1">Building The Best Possible NBA Team</h1>
+        <h1 class="display-6">Using the Genetic Algorithm</h1>
+    </div>
+    <table class="table table-striped table-bordered table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Player</th>
+                <th scope="col">Rating</th>
+                <th scope="col">Position</th>
+                <th scope="col">Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th colspan="4">Starting Five: </th>
+            </tr>
+            {% for player in team[:5] %}
+            <tr>
+                <td>{{player[0]}}</td>
+                <td>{{player[1]}}</td>
+                <td>{{player[2]}}</td>
+                <td>{{player[3]}}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <th colspan="4">Bench: </th>
+            </tr>
+            {% for player in team[5:] %}
+            <tr>
+                <td>{{player[0]}}</td>
+                <td>{{player[1]}}</td>
+                <td>{{player[2]}}</td>
+                <td>{{player[3]}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form action="/home">
+        <input type="submit" value="Start Over">
+    </form>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+</body>
+</html>
