@@ -5,7 +5,9 @@ import random
 from tqdm import tqdm
 from itertools import zip_longest
 
-def run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy):
+_population = []
+
+def run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy, built=False):
     df = create_dataframe.create()
     #df2 = create_dataframe.read()
     """  print(df1)
@@ -35,7 +37,7 @@ def run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_st
         paired_population_tuple = pair_parents(sorted_population_tuple, pairing_strategy)
         ## Mating Crossover
         ## Mutation
-        curr_population = mate_parents(paired_population_tuple, mating_strategy, mutation_rate)
+        curr_population = mate_parents(df, paired_population_tuple, mating_strategy, mutation_rate)
     
         ## Get best team (individual)
         population_fitness_tuple = calculate_fitness(curr_population, df, max_salary, fitness_strategy)
@@ -74,15 +76,80 @@ def build_starting_five(team):
                 break
     return team
 
-def mate_parents(paired_population_tuple, mating_strategy, mutation_rate):
-    ### TODO -- Add mutation
+def i_build_starting_five(team, player_idcs):
+    positions = ['C', 'PF', 'SF', 'SG', 'PG']
+    zpd_team = list(zip(team, player_idcs))
+    for position in positions:
+        for player in zpd_team:
+            if player[0][2] == position:
+                zpd_team.insert(0, zpd_team.pop(zpd_team.index(player)))
+                break
+    return zpd_team
+
+def mate_parents(df, paired_population_tuple, mating_strategy, mutation_rate):
     if mating_strategy == 0:
-        child_population = base_mating(paired_population_tuple)
-        
+        child_population = base_mating(paired_population_tuple, mutation_rate)
+    elif mating_strategy == 1:
+        child_population = positionwise_mating(df, paired_population_tuple, mutation_rate)    
     return child_population
 
+def positionwise_mating(df, paired_population_tuple, mutation_rate):
+    new_generation = []
+    for mating_pair in paired_population_tuple:
+        
+        ## Extract mother and father genomes
+        mother = mating_pair[0][1]
+        father = mating_pair[1][1]
 
-def base_mating(paired_population_tuple):
+        mother_team = extract_team(mother, df)
+        father_team = extract_team(father, df)
+        
+        mother_gene_idcs = list(np.where(mother == 1)[0])
+        father_gene_idcs = list(np.where(father == 1)[0])
+        
+        mother_pos_team = i_build_starting_five(mother_team, mother_gene_idcs)
+        father_pos_team = i_build_starting_five(father_team, father_gene_idcs)
+        
+        ## Holders for indices of child rosters
+        child1_idcs = []
+        child2_idcs = []
+        
+        ## Iterate over each position, the better player goes to child1, lesser goes to child2
+        for idx in range(len(mother_pos_team)):
+            if mother_pos_team[idx][0][1] > father_pos_team[idx][0][1]:
+                child1_idcs.append(mother_pos_team[idx][1])
+                child2_idcs.append(father_pos_team[idx][1])
+            else:
+                child2_idcs.append(mother_pos_team[idx][1])
+                child1_idcs.append(father_pos_team[idx][1])
+                
+                
+        ## Blank Child arrays        
+        child1 = np.zeros(403)
+        child2 = np.zeros(403)
+        
+        ## Set the player indices to 1
+        np.put(child1, child1_idcs, 1)
+        np.put(child2, child2_idcs, 1)
+        
+        child1_gene_idcs = list(np.where(mother == 1)[0])
+        child2_gene_idcs = list(np.where(father == 1)[0])
+        
+        ## Do mutations
+        if random.random() < mutation_rate or len(child1_gene_idcs) < 15:
+            mutate(child1)           
+        if random.random() < mutation_rate or len(child2_gene_idcs) < 15:
+            mutate(child2)
+            
+        ## Add children to new generation
+        new_generation.append(child1)
+        new_generation.append(child2)
+    
+    return new_generation
+            
+        
+        
+def base_mating(paired_population_tuple, mutation_rate):
     new_generation = []
     for mating_pair in paired_population_tuple:
         
@@ -91,7 +158,7 @@ def base_mating(paired_population_tuple):
         father = mating_pair[1][1]
         
         ## Crossover mating
-        crossover_idx = random.randint(0, 14)
+        crossover_idx = random.randint(1, 14)
         
         mother_gene_idcs = list(np.where(mother == 1)[0])
         father_gene_idcs = list(np.where(father == 1)[0])
@@ -110,11 +177,35 @@ def base_mating(paired_population_tuple):
         np.put(child1, child1_idcs, 1)
         np.put(child2, child2_idcs, 1)
         
+        
+        ## Do mutations
+        if random.random() < mutation_rate:
+            mutate(child1)           
+        if random.random() < mutation_rate:
+            mutate(child2)
+        
         ## Add children to new generation
         new_generation.append(child1)
         new_generation.append(child2)
         
     return new_generation
+
+def mutate(child):
+    gene_idcs = list(np.where(child == 1)[0])
+    if len(gene_idcs) == 15:
+        idx_out = random.randint(0, 14)
+        gene_idx_out = gene_idcs[idx_out]
+        child[gene_idx_out] = 0
+    
+    while True:    
+        gene_idx_in = random.randint(0, 402)
+        if gene_idx_in not in gene_idcs:
+            break
+            
+    child[gene_idx_in] = 1
+    gene_idcs_p = list(np.where(child == 1)[0])
+    return child
+    
         
 def init_population(pop_size, df, max_salary):
     population = []
@@ -267,9 +358,9 @@ def extract_team(individual, df):
     
 if __name__ == "__main__":
     max_salary = 109140000
-    max_generations = 80
-    mutation_rate = 1
+    max_generations = 8
+    mutation_rate = 0.1
     fitness_strategy = 1
     pairing_strategy = 0
-    mating_strategy = 0
+    mating_strategy = 1
     run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy)
