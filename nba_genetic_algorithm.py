@@ -7,7 +7,7 @@ from itertools import zip_longest
 
 _population = []
 
-def run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy, built=False):
+def run(population_size, max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy, built=False):
     df = create_dataframe.create()
     #df2 = create_dataframe.read()
     """  print(df1)
@@ -22,7 +22,7 @@ def run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_st
     #df3 = pd.concat([df1, df2]).drop_duplicates(keep=False)
     #print(df1_diff)
     #print(df2_diff)
-    population = init_population(100, df, max_salary)
+    population = init_population(population_size, df, max_salary)
     best_team = [0, [0]]
     
     print("Darwinning...")
@@ -38,7 +38,7 @@ def run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_st
         ## Mating Crossover
         ## Mutation
         curr_population = mate_parents(df, paired_population_tuple, mating_strategy, mutation_rate)
-    
+        
         ## Get best team (individual)
         population_fitness_tuple = calculate_fitness(curr_population, df, max_salary, fitness_strategy)
         sorted_population_tuple = sorted(population_fitness_tuple, key=lambda item: item[0], reverse=True)
@@ -132,19 +132,22 @@ def positionwise_mating(df, paired_population_tuple, mutation_rate):
         np.put(child1, child1_idcs, 1)
         np.put(child2, child2_idcs, 1)
         
-        child1_gene_idcs = list(np.where(mother == 1)[0])
-        child2_gene_idcs = list(np.where(father == 1)[0])
+        child1_gene_idcs = list(np.where(child1 == 1)[0])
+        child2_gene_idcs = list(np.where(child2 == 1)[0])
         
         ## Do mutations
         if random.random() < mutation_rate or len(child1_gene_idcs) < 15:
-            mutate(child1)           
+            child1 = mutate(child1)           
         if random.random() < mutation_rate or len(child2_gene_idcs) < 15:
-            mutate(child2)
-            
+            child2 = mutate(child2)
+        
+        alert_child1_gene_idcs = list(np.where(child1 == 1)[0])
+        alert_child2_gene_idcs = list(np.where(child2 == 1)[0])    
         ## Add children to new generation
         new_generation.append(child1)
         new_generation.append(child2)
-    
+        if len(alert_child1_gene_idcs) < 15 or len(alert_child2_gene_idcs) < 15:
+            print("Short TEam")
     return new_generation
             
         
@@ -190,20 +193,22 @@ def base_mating(paired_population_tuple, mutation_rate):
         
     return new_generation
 
+## TODO --Problem is in here - need to loop until team is back up to 15 indices
 def mutate(child):
     gene_idcs = list(np.where(child == 1)[0])
     if len(gene_idcs) == 15:
         idx_out = random.randint(0, 14)
         gene_idx_out = gene_idcs[idx_out]
         child[gene_idx_out] = 0
-    
-    while True:    
-        gene_idx_in = random.randint(0, 402)
-        if gene_idx_in not in gene_idcs:
-            break
-            
-    child[gene_idx_in] = 1
-    gene_idcs_p = list(np.where(child == 1)[0])
+        
+    gene_idcs = list(np.where(child == 1)[0])    
+    while len(gene_idcs) < 15:
+        while True:    
+            gene_idx_in = random.randint(0, 402)
+            if gene_idx_in not in gene_idcs:
+                break 
+        child[gene_idx_in] = 1
+        gene_idcs = list(np.where(child == 1)[0])
     return child
     
         
@@ -355,12 +360,22 @@ def extract_team(individual, df):
         players.append(player)
         
     return players
+
+def extract_population(population, df):
+    extracted_pop = []
+    for individual in population:
+        team = extract_team(individual, df)
+        extracted_pop.append(team)
+        if len(team) < 15:
+            print("Short Team")
+    return extracted_pop
     
 if __name__ == "__main__":
+    population_size = 100
     max_salary = 109140000
-    max_generations = 8
+    max_generations = 100
     mutation_rate = 0.1
     fitness_strategy = 1
     pairing_strategy = 0
     mating_strategy = 1
-    run(max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy)
+    run(population_size, max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy)
