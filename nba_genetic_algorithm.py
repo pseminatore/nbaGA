@@ -8,7 +8,7 @@ from itertools import zip_longest
 _population = []
 
 def run(population_size, max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy, built=False):
-    df = create_dataframe.read_from_cosmos()
+    df = create_dataframe.read_from_storage()
     #df2 = create_dataframe.read()
     """  print(df1)
     print(df2)

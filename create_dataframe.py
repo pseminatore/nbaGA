@@ -110,8 +110,23 @@ def read_from_cosmos():
 
 def read_from_storage():
     table_client = create_storage_connection()
-    response = table_client.query_entities('PlayerRatings', filter="PartitionKey eq 'playerRatings'")
-    pass
+    response = list(table_client.query_entities('PlayerRatings', filter="PartitionKey eq 'playerRatings'"))
+    df = pd.DataFrame()
+    for item in response:
+        series = pd.Series(data=item)
+        df = df.append(series, ignore_index=True)
+    df = format_dataframe(df)
+    print(df)
+    return df
+
+def format_dataframe(df):
+    df = df.drop(labels=["PartitionKey", "RowKey", "Timestamp", "etag"], axis=1)
+    df = df.astype({'Index': 'int', 'Rating': 'int'})
+    df.sort_values('Index', inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    df.drop(labels=["Index"], axis=1, inplace=True)
+    return df
+
 
 if __name__ == "__main__":
     read_from_storage()
