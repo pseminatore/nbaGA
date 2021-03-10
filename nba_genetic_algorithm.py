@@ -8,7 +8,7 @@ from itertools import zip_longest
 _population = []
 
 def run(population_size, max_generations, mutation_rate, max_salary, fitness_strategy, pairing_strategy, mating_strategy, built=False):
-    df = create_dataframe.create()
+    df = create_dataframe.read_from_cosmos()
     #df2 = create_dataframe.read()
     """  print(df1)
     print(df2)
@@ -193,7 +193,6 @@ def base_mating(paired_population_tuple, mutation_rate):
         
     return new_generation
 
-## TODO --Problem is in here - need to loop until team is back up to 15 indices
 def mutate(child):
     gene_idcs = list(np.where(child == 1)[0])
     if len(gene_idcs) == 15:
